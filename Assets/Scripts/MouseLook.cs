@@ -49,9 +49,9 @@ public class MouseLook : MonoBehaviour
     {
         if (mouseDelta == Vector2.zero) return;
         
-        transform.Rotate(Vector3.up * (mouseDelta.x * Time.deltaTime * mouseSensitivity));
+        transform.Rotate(Vector3.up * (mouseDelta.x * mouseSensitivity));
         
-        _cameraPitch -= mouseDelta.y * mouseSensitivity * Time.deltaTime;
+        _cameraPitch -= mouseDelta.y * mouseSensitivity;
         _cameraPitch = Mathf.Clamp(_cameraPitch, -pitchConstraint, pitchConstraint);
 
         var cameraEulerAngles = playerCamera.eulerAngles;
