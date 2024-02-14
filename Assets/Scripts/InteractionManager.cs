@@ -1,113 +1,53 @@
+using Interfaces;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class InteractionManager : MonoBehaviour
 {
-    [SerializeField] private string interactTag = "Interactable";
     [SerializeField] private float interactRange;
-
     [SerializeField] private new Camera camera;
     [SerializeField] private Material highlightMaterial;
     [SerializeField] private Material defaultMaterial;
-    private Transform _interactingWith;
-    private Renderer _interactingRenderer;
-
-    // ReSharper disable Unity.PerformanceAnalysis
-    public void OnClick(bool interact)
-    {
-        if (_interactingWith == null) return;
-        if (!interact) return;
-        _interactingWith.GetComponent<Interactable>().RunInteractEvent();
-    }
-
-    #region INTERFACES
+    private Transform _interactObject;
+    private Renderer _interactRenderer;
     
-    public void InteractWithObject(GameObject objectToInteractWith, bool interact)
+    public void UpdateInteraction(bool interacted)
     {
-        if (objectToInteractWith.TryGetComponent(out IInteractable interactableObject))
-        {
-            interactableObject.Interact();
-        }
-    }
+        SetDefaultMaterial();
 
-    public void InteractWithObject(bool interact)
-    {
-        if (!interact) return;
-        if (_interactingWith.TryGetComponent(out IInteractable interactableObject))
-        {
-            interactableObject.Interact();
-        }
-    }
-
-    // ReSharper disable Unity.PerformanceAnalysis
-    public void UpdateInteractionInterfaces(bool interacted)
-    {
-        if (_interactingWith != null)
-        {
-            // RESETS INTERACTABLE_OBJ MATERIAL
-            var interactingRenderer = _interactingWith.GetComponent<Renderer>();
-            interactingRenderer.material = defaultMaterial;
-            _interactingWith = null;
-        }
-        
-        // SET 3D / PERSPECTIVE CAMERA DIRECTION Based on mouse POS
         var rayDirection = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
         if (Physics.Raycast(rayDirection, out var hit, interactRange))
         {
-            var selected = hit.transform;
+            _interactObject = hit.transform;
             
-            if (!selected.TryGetComponent(out IInteractable interactableObject)) return;
+            if (!_interactObject.TryGetComponent(out IInteractable interactInterface)) return;
        
-            var interactingRenderer = selected.GetComponent<Renderer>();
-            defaultMaterial = interactingRenderer.material;
-
-            if (interactingRenderer != null)
-            {
-                interactingRenderer.material = highlightMaterial;
-            }
-
-            _interactingWith = selected;
+            SetHighlightMaterial();
             
             if (!interacted) return;
-            interactableObject.Interact();
-            print("This obj was interacted with");
+            interactInterface.Interact();
         }
     }
-    
-    #endregion
-    
 
-    public void UpdateInteraction()
+    private void SetHighlightMaterial()
     {
-        if (_interactingWith != null)
-        {
-            // RESETS INTERACTABLE_OBJ MATERIAL
-          var interactingRenderer = 
-              _interactingWith.GetComponent<Renderer>();
-          interactingRenderer.material = defaultMaterial;
-          _interactingWith = null;
-        }
         
-        // SET 3D / PERSPECTIVE CAMERA DIRECTION Based on mouse POS
-        var rayDirection = camera.ScreenPointToRay(Mouse.current.position.ReadValue());
-        
-        if (Physics.Raycast(rayDirection, out var hit) && hit.distance < interactRange)
+        _interactRenderer = _interactObject.GetComponent<Renderer>();
+        defaultMaterial = _interactRenderer.material;
+
+        if (_interactRenderer != null)
         {
-            var selected = hit.transform;
-
-            if (selected.CompareTag(interactTag))
-            {
-                var interactingRenderer = selected.GetComponent<Renderer>();
-                defaultMaterial = interactingRenderer.material;
-
-                if (interactingRenderer != null)
-                {
-                    interactingRenderer.material = highlightMaterial;
-                }
-
-                _interactingWith = selected;
-            }
+            _interactRenderer.material = highlightMaterial;
         }
+    }
+
+    private void SetDefaultMaterial()
+    {
+        if (_interactObject == null) return;
+        _interactRenderer = _interactObject.GetComponent<Renderer>();
+        _interactRenderer.material = defaultMaterial;
+        _interactObject = null;
+        _interactRenderer = null;
     }
 }

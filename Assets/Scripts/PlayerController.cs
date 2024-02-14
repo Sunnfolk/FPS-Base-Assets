@@ -22,6 +22,6 @@ public class PlayerController : MonoBehaviour
         _mouseLook.UpdateMouseLook(_input.LookDirection);
         _move.UpdateMovement(_input.MoveDirection, _input.Dash, _input.Jump);
    
-        _interaction.UpdateInteractionInterfaces(_input.Interact);
+        _interaction.UpdateInteraction(_input.Interact);
     }
 }
